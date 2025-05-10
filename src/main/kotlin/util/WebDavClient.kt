@@ -16,11 +16,14 @@ import java.security.cert.X509Certificate
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.PasswordAuthentication
 import java.net.URL
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.zip.ZipInputStream
 
 class WebDavClient {
     private val baseUrl: String
@@ -39,7 +42,6 @@ class WebDavClient {
             ?: throw IllegalStateException("WEBDAV_USER not set")
         password = System.getenv("WEBDAV_PASS")
             ?: throw IllegalStateException("WEBDAV_PASS not set")
-
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<out X509Certificate>, authType: String) {}
             override fun checkServerTrusted(chain: Array<out X509Certificate>, authType: String) {}
@@ -73,11 +75,9 @@ class WebDavClient {
             .url(url)
             .get()
             .build()
-
         noAuthClient.awaitCall(initialRequest).use { resp1 ->
             if (resp1.isSuccessful) return resp1.body?.string()
             if (resp1.code != 401) return null
-
             val header = resp1.header("WWW-Authenticate") ?: return null
             val params = mutableMapOf<String, String>()
             Regex("""(\w+)="([^"]*)"""").findAll(header).forEach { match ->
@@ -92,13 +92,11 @@ class WebDavClient {
                 val md = MessageDigest.getInstance("MD5")
                 return md.digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
             }
-
             val ha1 = md5("$username:$realm:$password")
             val ha2 = md5("$method:$uri")
             val nc = "00000001"
             val cnonce = UUID.randomUUID().toString().replace("-", "")
             val responseDigest = md5("$ha1:$nonce:$nc:$cnonce:$qop:$ha2")
-
             val authValue = buildString {
                 append("Digest username=\"").append(username)
                 append("\", realm=\"").append(realm)
@@ -111,11 +109,9 @@ class WebDavClient {
                 opaque?.let { append("\", opaque=\"").append(it) }
                 append("\"")
             }
-
             val authRequest = initialRequest.newBuilder()
                 .header("Authorization", authValue)
                 .build()
-
             noAuthClient.awaitCall(authRequest).use { resp2 ->
                 return if (resp2.isSuccessful) resp2.body?.string() else null
             }
@@ -137,6 +133,25 @@ class WebDavClient {
         return conn.inputStream.use { it.readAllBytes() }
     }
 
+    fun unzip(zipFile: String, outputDir: String) {
+        ZipInputStream(File(zipFile).inputStream()).use { zin ->
+            val targetDir = File(outputDir).absoluteFile
+            var entry = zin.nextEntry
+            while (entry != null) {
+                val name = entry.name.substringAfter('/', "")
+                if (name.isNotEmpty()) {
+                    val outFile = File(targetDir, name)
+                    if (entry.isDirectory) outFile.mkdirs() else {
+                        outFile.parentFile!!.mkdirs()
+                        FileOutputStream(outFile).use { os -> zin.copyTo(os) }
+                    }
+                }
+                zin.closeEntry()
+                entry = zin.nextEntry
+            }
+        }
+    }
+
     private suspend fun OkHttpClient.awaitCall(request: Request): Response {
         return suspendCancellableCoroutine { cont ->
             val call = newCall(request)
@@ -145,7 +160,6 @@ class WebDavClient {
                 override fun onFailure(call: Call, e: IOException) {
                     if (!cont.isCancelled) cont.resumeWithException(e)
                 }
-
                 override fun onResponse(call: Call, response: Response) {
                     cont.resume(response)
                 }
