@@ -16,6 +16,9 @@ import java.security.cert.X509Certificate
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.net.HttpURLConnection
+import java.net.PasswordAuthentication
+import java.net.URL
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -119,18 +122,23 @@ class WebDavClient {
         }
     }
 
-    suspend fun awaitFile(key: String): ByteArray? {
-        val request = Request.Builder()
-            .url("$baseUrl/$key")
-            .get()
-            .build()
-        client.awaitCall(request).use { response ->
-            return if (response.isSuccessful) response.body?.bytes() else null
-        }
+    @Suppress("DEPRECATION")
+    fun awaitFile(key: String): ByteArray? {
+        java.net.Authenticator.setDefault(object : java.net.Authenticator() {
+            override fun getPasswordAuthentication() =
+                PasswordAuthentication(username, password.toCharArray())
+        })
+        HttpURLConnection.setFollowRedirects(true)
+        val url = URL(baseUrl.trimEnd('/') + "/$key")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.connect()
+        if (conn.responseCode !in 200..299) throw IllegalStateException("Fallback download failed: HTTP ${conn.responseCode}")
+        return conn.inputStream.use { it.readAllBytes() }
     }
 
-    private suspend fun OkHttpClient.awaitCall(request: Request): Response =
-        suspendCancellableCoroutine { cont ->
+    private suspend fun OkHttpClient.awaitCall(request: Request): Response {
+        return suspendCancellableCoroutine { cont ->
             val call = newCall(request)
             cont.invokeOnCancellation { call.cancel() }
             call.enqueue(object : Callback {
@@ -143,4 +151,5 @@ class WebDavClient {
                 }
             })
         }
+    }
 }
