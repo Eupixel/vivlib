@@ -16,6 +16,9 @@ import java.security.cert.X509Certificate
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.net.HttpURLConnection
+import java.net.PasswordAuthentication
+import java.net.URL
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -119,14 +122,25 @@ class WebDavClient {
         }
     }
 
-    suspend fun awaitFile(key: String): ByteArray? {
-        val request = Request.Builder()
-            .url("$baseUrl/$key")
-            .get()
-            .build()
-        client.awaitCall(request).use { response ->
-            return if (response.isSuccessful) response.body?.bytes() else null
-        }
+    @Suppress("DEPRECATION")
+    fun downloadFile(key: String): ByteArray {
+        val host = System.getenv("WEBDAV_HOST")
+            ?: throw IllegalStateException("WEBDAV_HOST not set")
+        val user = System.getenv("WEBDAV_USER")
+            ?: throw IllegalStateException("WEBDAV_USER not set")
+        val pass = System.getenv("WEBDAV_PASS")
+            ?: throw IllegalStateException("WEBDAV_PASS not set")
+        java.net.Authenticator.setDefault(object : java.net.Authenticator() {
+            override fun getPasswordAuthentication() =
+                PasswordAuthentication(user, pass.toCharArray())
+        })
+        HttpURLConnection.setFollowRedirects(true)
+        val url = URL(host.trimEnd('/') + "/$key")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.connect()
+        if (conn.responseCode !in 200..299) throw IllegalStateException("Fallback download failed: HTTP ${conn.responseCode}")
+        return conn.inputStream.use { it.readAllBytes() }
     }
 
     private suspend fun OkHttpClient.awaitCall(request: Request): Response =
