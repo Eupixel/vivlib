@@ -1,3 +1,5 @@
+package net.eupixel.vivlib
+
 import net.minestom.server.MinecraftServer
 
 object vivlib {

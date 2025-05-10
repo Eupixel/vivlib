@@ -1,4 +1,4 @@
-package util
+package net.eupixel.vivlib.util
 
 import okhttp3.Authenticator
 import okhttp3.Authenticator.Companion.NONE
