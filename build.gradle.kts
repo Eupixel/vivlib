@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "2.1.20"
-    `maven-publish`
 }
 
 group = "net.eupixel"
@@ -18,15 +17,4 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
 }
