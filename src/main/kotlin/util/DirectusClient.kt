@@ -42,4 +42,17 @@ class DirectusClient(
         }
         true to spawn
     }
+
+    suspend fun getSpawnPosition(name: String): String? = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("$host/items/worlds?filter[name][_eq]=$name&fields=spawn_position")
+            .header("Authorization", "Bearer $token")
+            .build()
+        client.newCall(request).execute().use { res ->
+            if (!res.isSuccessful) return@withContext null
+            val json = mapper.readTree(res.body?.string())
+            val item = json["data"].firstOrNull() ?: return@withContext null
+            item["spawn_position"]?.asText()
+        }
+    }
 }
