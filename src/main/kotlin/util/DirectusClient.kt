@@ -25,29 +25,31 @@ object DirectusClient {
         init(h, t)
     }
 
-    suspend fun downloadWorld(name: String): Pair<Boolean, String?> = withContext(Dispatchers.IO) {
-        val req = Request.Builder()
-            .url("$host/items/worlds?filter[name][_eq]=$name&fields=world_data,spawn_position")
+    suspend fun downloadWorld(name: String): Boolean = withContext(Dispatchers.IO) {
+        val worldReq = Request.Builder()
+            .url("$host/items/worlds?filter[name][_eq]=$name&fields=world_data")
             .header("Authorization", "Bearer $token")
             .build()
-        val (fileId, spawn) = client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@withContext false to null
+        val fileId = client.newCall(worldReq).execute().use { res ->
+            if (!res.isSuccessful) return@withContext false
             val json = mapper.readTree(res.body!!.string())
-            val item = json["data"].firstOrNull() ?: return@withContext false to null
-            (item["world_data"]?.asText() ?: return@withContext false to null) to item["spawn_position"]?.asText()
+            val item = json["data"].firstOrNull() ?: return@withContext false
+            item["world_data"]?.asText() ?: return@withContext false
         }
-        val zipReq = Request.Builder()
+        val assetReq = Request.Builder()
             .url("$host/assets/$fileId")
             .header("Authorization", "Bearer $token")
             .build()
-        val file = File("$name.zip")
-        client.newCall(zipReq).execute().use { res ->
-            if (!res.isSuccessful) return@withContext false to spawn
+        val outFile = File("$name.zip")
+        client.newCall(assetReq).execute().use { res ->
+            if (!res.isSuccessful) return@withContext false
             res.body!!.byteStream().use { input ->
-                file.outputStream().use { output -> input.copyTo(output) }
+                outFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
         }
-        true to spawn
+        true
     }
 
     suspend fun getData(
