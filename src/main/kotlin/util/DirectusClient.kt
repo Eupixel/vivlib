@@ -19,7 +19,6 @@ object DirectusClient {
     fun init(host: String, token: String) {
         this.host = host.trimEnd('/')
         this.token = token
-        println("DirectusClient initialized host=$host")
     }
 
     fun initFromEnv() {
@@ -63,15 +62,15 @@ object DirectusClient {
             .header("Authorization", "Bearer $token")
             .build()
         client.newCall(req).execute().use { res ->
-            val body = res.body!!.string()
             if (!res.isSuccessful) return@withContext null
+            val body = res.body!!.string()
             mapper.readTree(body)["data"].firstOrNull()
         }
     }
 
     suspend fun createItem(collection: String, payload: Any): JsonNode? = withContext(Dispatchers.IO) {
         val url = "$host/items/$collection"
-        val jsonPayload = mapper.writeValueAsString(payload)
+        val jsonPayload = mapper.writeValueAsString(mapOf("data" to payload))
         val req = Request.Builder()
             .url(url)
             .post(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
@@ -79,15 +78,15 @@ object DirectusClient {
             .header("Content-Type", "application/json")
             .build()
         client.newCall(req).execute().use { res ->
-            val body = res.body!!.string()
             if (!res.isSuccessful) return@withContext null
-            mapper.readTree(body)["data"]
+            val root = mapper.readTree(res.body!!.string())
+            root["data"]
         }
     }
 
     suspend fun updateItem(collection: String, id: String, payload: Any): JsonNode? = withContext(Dispatchers.IO) {
         val url = "$host/items/$collection/$id"
-        val jsonPayload = mapper.writeValueAsString(payload)
+        val jsonPayload = mapper.writeValueAsString(mapOf("data" to payload))
         val req = Request.Builder()
             .url(url)
             .patch(jsonPayload.toRequestBody("application/json".toMediaTypeOrNull()))
@@ -95,22 +94,25 @@ object DirectusClient {
             .header("Content-Type", "application/json")
             .build()
         client.newCall(req).execute().use { res ->
-            val body = res.body!!.string()
             if (!res.isSuccessful) return@withContext null
-            mapper.readTree(body)["data"]
+            val root = mapper.readTree(res.body!!.string())
+            root["data"]
         }
     }
 
-    suspend fun deleteItem(collection: String, id: String): Boolean = withContext(Dispatchers.IO) {
-        val url = "$host/items/$collection/$id"
-        println("REQUEST DELETE $url")
-        val req = Request.Builder()
-            .url(url)
-            .delete()
-            .header("Authorization", "Bearer $token")
-            .build()
-        client.newCall(req).execute().use { res ->
-            res.isSuccessful
-        }
+    suspend fun deleteItem(collection: String, filterField: String, filterValue: String): Boolean = withContext(Dispatchers.IO) {
+        val findUrl = "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=uuid"
+        val record = client.newCall(Request.Builder().url(findUrl).header("Authorization", "Bearer $token").build())
+            .execute().use { res ->
+                val body = res.body!!.string()
+                if (!res.isSuccessful) return@withContext false
+                mapper.readTree(body)["data"].firstOrNull()?.get("uuid")?.asText()
+            } ?: return@withContext false
+        val deleteUrl = "$host/items/$collection/$record"
+        val delRes = client.newCall(Request.Builder().url(deleteUrl).delete().header("Authorization", "Bearer $token").build())
+            .execute().use { res ->
+                res.isSuccessful
+            }
+        delRes
     }
 }
