@@ -52,6 +52,10 @@ object Permissions {
         }
     }
 
+    fun hasPermission(player: Player, permission: String): Boolean {
+        return getPermissions(player).contains(permission)
+    }
+
     fun getPrefix(player: Player): String {
         val perms = getPermissions(player)
         if (perms.isEmpty()) {
