@@ -54,11 +54,16 @@ object Permissions {
 
     fun getPrefix(player: Player): String {
         val perms = getPermissions(player)
-        for (perm in perms) {
-            if (perm.startsWith("prefix:")) {
-                return perm.removePrefix("prefix:")
-            }
+        if (perms.isEmpty()) {
+            return ""
         }
-        return ""
+        return perms.filter { it.startsWith("prefix:") }
+            .minByOrNull {
+                val weightStr = it.substringAfter("prefix:").substringBefore(":")
+                weightStr.toIntOrNull() ?: Int.MAX_VALUE
+            }
+            ?.substringAfter("prefix:")
+            ?.substringAfter(":")
+            ?: ""
     }
 }
