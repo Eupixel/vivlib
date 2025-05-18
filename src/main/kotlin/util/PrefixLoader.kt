@@ -27,6 +27,7 @@ object PrefixLoader {
             meta.billboardRenderConstraints = AbstractDisplayMeta.BillboardConstraints.CENTER
             meta.translation = Pos(0.0, 0.25, 0.0)
             meta.isHasGlowingEffect = true
+            meta.backgroundColor = 0x00000000
         }
         player.displayName = component
         player.addPassenger(display)
