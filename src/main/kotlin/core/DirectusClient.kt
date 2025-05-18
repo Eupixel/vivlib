@@ -1,4 +1,4 @@
-package net.eupixel.vivlib.util
+package core
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -42,25 +42,29 @@ object DirectusClient {
         }
     }
 
-    fun getItems(collection: String, filterField: String, filterValue: String, fields: List<String>): List<JsonNode> = runBlocking {
-        val url = "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
-        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
-        client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@runBlocking emptyList()
-            val root = mapper.readTree(res.body!!.string())
-            root["data"].map { it }
+    fun getItems(collection: String, filterField: String, filterValue: String, fields: List<String>): List<JsonNode> =
+        runBlocking {
+            val url =
+                "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
+            val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
+            client.newCall(req).execute().use { res ->
+                if (!res.isSuccessful) return@runBlocking emptyList()
+                val root = mapper.readTree(res.body!!.string())
+                root["data"].map { it }
+            }
         }
-    }
 
-    fun getData(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = runBlocking {
-        val url = "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
-        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
-        client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@runBlocking null
-            val root = mapper.readTree(res.body!!.string())
-            root["data"].firstOrNull()
+    fun getData(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? =
+        runBlocking {
+            val url =
+                "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
+            val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
+            client.newCall(req).execute().use { res ->
+                if (!res.isSuccessful) return@runBlocking null
+                val root = mapper.readTree(res.body!!.string())
+                root["data"].firstOrNull()
+            }
         }
-    }
 
     fun downloadWorld(name: String): Boolean = runBlocking {
         val worldReq = Request.Builder()
