@@ -1,4 +1,4 @@
-package core
+package net.eupixel.core
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

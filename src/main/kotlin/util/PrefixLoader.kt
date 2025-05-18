@@ -1,4 +1,4 @@
-package util
+package net.eupixel.util
 
 import net.eupixel.vivlib.util.Permissions
 import net.minestom.server.coordinate.Pos
