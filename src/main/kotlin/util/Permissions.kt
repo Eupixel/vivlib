@@ -3,7 +3,7 @@ package net.eupixel.vivlib.util
 import java.util.UUID
 
 object Permissions {
-    suspend fun getPermissions(uuid: UUID): List<String> {
+    fun getPermissions(uuid: UUID): List<String> {
         val perms = DirectusClient.getItems("player_permissions", "uuid", uuid.toString(), listOf("permissions"))
             .firstOrNull()
             ?.get("permissions")
@@ -31,11 +31,11 @@ object Permissions {
         return finalPerms.toList()
     }
 
-    suspend fun hasPermission(uuid: UUID, permission: String): Boolean {
+    fun hasPermission(uuid: UUID, permission: String): Boolean {
         return getPermissions(uuid).contains(permission)
     }
 
-    suspend fun getPrefix(uuid: UUID): String {
+    fun getPrefix(uuid: UUID): String {
         return getPermissions(uuid)
             .filter { it.startsWith("prefix:") }
             .minByOrNull {

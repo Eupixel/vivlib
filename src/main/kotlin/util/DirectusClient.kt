@@ -2,9 +2,7 @@ package net.eupixel.vivlib.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,21 +41,21 @@ object DirectusClient {
         }
     }
 
-    suspend fun getItems(collection: String, filterField: String, filterValue: String, fields: List<String>): List<JsonNode> = withContext(Dispatchers.IO) {
+    fun getItems(collection: String, filterField: String, filterValue: String, fields: List<String>): List<JsonNode> = runBlocking {
         val url = "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
         val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
         client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@withContext emptyList()
+            if (!res.isSuccessful) return@runBlocking emptyList()
             val root = mapper.readTree(res.body!!.string())
             root["data"].map { it }
         }
     }
 
-    suspend fun getData(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = withContext(Dispatchers.IO) {
+    fun getData(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = runBlocking {
         val url = "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
         val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
         client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@withContext null
+            if (!res.isSuccessful) return@runBlocking null
             val root = mapper.readTree(res.body!!.string())
             root["data"].firstOrNull()
         }
