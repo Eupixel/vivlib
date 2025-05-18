@@ -7,6 +7,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 object DirectusClient {
     private val client = OkHttpClient()
@@ -59,5 +60,32 @@ object DirectusClient {
             val root = mapper.readTree(res.body!!.string())
             root["data"].firstOrNull()
         }
+    }
+
+    fun downloadWorld(name: String): Boolean = runBlocking {
+        val worldReq = Request.Builder()
+            .url("$host/items/worlds?filter[name][_eq]=$name&fields=world_data")
+            .header("Authorization", "Bearer $token")
+            .build()
+        val fileId = client.newCall(worldReq).execute().use { res ->
+            if (!res.isSuccessful) return@runBlocking false
+            val json = mapper.readTree(res.body!!.string())
+            val item = json["data"].firstOrNull() ?: return@runBlocking false
+            item["world_data"]?.asText() ?: return@runBlocking false
+        }
+        val assetReq = Request.Builder()
+            .url("$host/assets/$fileId")
+            .header("Authorization", "Bearer $token")
+            .build()
+        val outFile = File("$name.zip")
+        client.newCall(assetReq).execute().use { res ->
+            if (!res.isSuccessful) return@runBlocking false
+            res.body!!.byteStream().use { input ->
+                outFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+        true
     }
 }
