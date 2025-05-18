@@ -3,9 +3,7 @@
 import net.eupixel.core.DirectusClient
 import net.eupixel.core.DBTranslator
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.translation.GlobalTranslator
 import net.minestom.server.MinecraftServer
-import net.minestom.server.adventure.MinestomAdventure
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
@@ -17,8 +15,6 @@ fun main() {
     DirectusClient.initFromEnv()
 
     val translator = DBTranslator(arrayOf("welcome_message", "flight_state", "prefix"))
-    GlobalTranslator.translator().addSource(translator)
-    MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = true
 
     val server = MinecraftServer.init()
     val instance = MinecraftServer.getInstanceManager()

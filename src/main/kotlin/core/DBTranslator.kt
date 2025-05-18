@@ -2,8 +2,6 @@ package net.eupixel.core
 
 import net.eupixel.model.Message
 import net.eupixel.model.Translation
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.translation.Translator
 import java.text.MessageFormat
 import java.util.Locale
 
@@ -11,10 +9,8 @@ class DBTranslator(
     private val keys: Array<String>,
     private val defaultLocale: Locale = Locale.US,
     private val fallbackMessage: String = "no translation"
-) : Translator {
-
+) {
     private val messages = mutableListOf<Message>()
-    override fun name(): Key = Key.key("translator")
 
     init {
         loadFromDB()
@@ -48,7 +44,7 @@ class DBTranslator(
         }
     }
 
-    override fun translate(key: String, locale: Locale): MessageFormat {
+    fun translate(key: String, locale: Locale): MessageFormat {
         val msg = messages.find { it.getKey() == key }
         msg?.getTranslations()?.find { it.getLocale() == locale }?.let {
             return it.getMessageFormat()
@@ -61,6 +57,5 @@ class DBTranslator(
 
     fun get(key: String, locale: Locale): String {
         return translate(key, locale).toPattern().replace("<prefix>", translate("prefix", defaultLocale).toPattern())
-
     }
 }
