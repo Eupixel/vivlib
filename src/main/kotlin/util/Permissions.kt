@@ -30,6 +30,7 @@ object Permissions {
             }
             ?.substringAfter("prefix:")
             ?.substringAfter(":")
+            ?.removeSuffix(":")
             .orEmpty()
 
     private fun loadPermissions(uuid: UUID): List<String> {

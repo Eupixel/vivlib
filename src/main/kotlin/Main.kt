@@ -2,6 +2,7 @@
 
 import net.eupixel.core.DirectusClient
 import net.eupixel.core.DBTranslator
+import net.eupixel.util.PrefixLoader
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
@@ -31,6 +32,7 @@ fun main() {
 
     MinecraftServer.getGlobalEventHandler().addListener(PlayerSpawnEvent::class.java) { event ->
         event.player.sendMessage(MiniMessage.miniMessage().deserialize(translator.get("welcome_message", event.player.locale).replace("<player>", event.player.username)))
+        PrefixLoader.loadPrefix(event.player)
     }
 
     MojangAuth.init()
