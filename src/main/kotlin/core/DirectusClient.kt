@@ -64,26 +64,33 @@ object DirectusClient {
         }
     }
 
-    fun downloadWorld(name: String): Boolean = runBlocking {
-        val worldReq = Request.Builder()
-            .url("$host/items/worlds?filter[name][_eq]=$name&fields=world_data")
-            .header("Authorization", "Bearer $token")
-            .build()
-        val fileId = client.newCall(worldReq).execute().use { res ->
-            if (!res.isSuccessful) return@runBlocking false
-            val json = mapper.readTree(res.body!!.string())
-            val item = json["data"].firstOrNull() ?: return@runBlocking false
-            item["world_data"]?.asText() ?: return@runBlocking false
-        }
-        val assetReq = Request.Builder()
-            .url("$host/assets/$fileId")
-            .header("Authorization", "Bearer $token")
-            .build()
-        val outFile = File("$name.zip")
-        client.newCall(assetReq).execute().use { res ->
+    fun downloadFile(
+        collection: String,
+        filterField: String,
+        filterValue: String,
+        fileField: String,
+        outputPath: String
+    ) = runBlocking {
+        val id = mapper.readTree(
+            client.newCall(
+                Request.Builder()
+                    .url("$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=$fileField")
+                    .header("Authorization", "Bearer $token")
+                    .build()
+            ).execute().use { res ->
+                if (!res.isSuccessful) return@runBlocking false
+                res.body!!.string()
+            }
+        )["data"].firstOrNull()?.get(fileField)?.asText() ?: return@runBlocking false
+        client.newCall(
+            Request.Builder()
+                .url("$host/assets/$id?download=true")
+                .header("Authorization", "Bearer $token")
+                .build()
+        ).execute().use { res ->
             if (!res.isSuccessful) return@runBlocking false
             res.body!!.byteStream().use { input ->
-                outFile.outputStream().use { output ->
+                File(outputPath).outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
