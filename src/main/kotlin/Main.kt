@@ -4,5 +4,6 @@ import net.eupixel.core.DirectusClient
 
 fun main() {
     DirectusClient.initFromEnv()
-    DirectusClient.downloadFile("icons", "name", "server", "icon", "icon.png")
+    val rawMOTD = DirectusClient.getData("global_values", "name", "motd", "data").toString()
+    println("'$rawMOTD'")
 }

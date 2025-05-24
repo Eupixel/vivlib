@@ -53,7 +53,18 @@ object DirectusClient {
         }
     }
 
-    fun getData(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = runBlocking {
+    fun getData(collection: String, filterField: String, filterValue: String, field: String): String? = runBlocking {
+        val url =
+            "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=$field"
+        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
+        client.newCall(req).execute().use { res ->
+            if (!res.isSuccessful) return@runBlocking null
+            val root = mapper.readTree(res.body!!.string())
+            root["data"].firstOrNull()?.get(field)?.asText()
+        }
+    }
+
+    fun getFields(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = runBlocking {
         val url =
             "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
         val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
@@ -106,7 +117,7 @@ object DirectusClient {
         localeFieldName: String  = "locale",
         textFieldName: String    = "message"
     ): Map<String, String>? {
-        val node = getData(
+        val node = getFields(
             collection   = collection,
             filterField  = filterField,
             filterValue  = filterValue,
