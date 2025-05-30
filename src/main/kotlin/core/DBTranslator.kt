@@ -2,7 +2,6 @@ package net.eupixel.core
 
 import net.eupixel.model.Message
 import net.eupixel.model.Translation
-import java.text.MessageFormat
 import java.util.Locale
 
 class DBTranslator(
@@ -27,7 +26,7 @@ class DBTranslator(
             )?.let { localeMap ->
                 val translations = localeMap.map { (localeTag, text) ->
                     val locale = toLocale(localeTag)
-                    Translation(locale, MessageFormat(text))
+                    Translation(locale, text)
                 }
                 messages.add(Message(key, ArrayList(translations)))
             }
@@ -44,18 +43,18 @@ class DBTranslator(
         }
     }
 
-    fun translate(key: String, locale: Locale): MessageFormat {
+    fun translate(key: String, locale: Locale): String {
         val msg = messages.find { it.getKey() == key }
         msg?.getTranslations()?.find { it.getLocale() == locale }?.let {
-            return it.getMessageFormat()
+            return it.getMessage()
         }
         msg?.getTranslations()?.find { it.getLocale() == defaultLocale }?.let {
-            return it.getMessageFormat()
+            return it.getMessage()
         }
-        return MessageFormat(fallbackMessage)
+        return fallbackMessage
     }
 
     fun get(key: String, locale: Locale): String {
-        return translate(key, locale).toPattern().replace("<prefix>", translate("prefix", defaultLocale).toPattern())
+        return translate(key, locale).replace("<prefix>", translate("prefix", defaultLocale))
     }
 }

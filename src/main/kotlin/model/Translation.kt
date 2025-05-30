@@ -1,14 +1,13 @@
 package net.eupixel.model
 
-import java.text.MessageFormat
 import java.util.Locale
 
-class Translation(private val locale: Locale, private val message: MessageFormat) {
+class Translation(private val locale: Locale, private val message: String) {
     fun getLocale(): Locale {
         return locale
     }
 
-    fun getMessageFormat(): MessageFormat {
+    fun getMessage(): String {
         return message
     }
 }
