@@ -64,17 +64,6 @@ object DirectusClient {
         }
     }
 
-    fun getFields(collection: String, filterField: String, filterValue: String, fields: List<String>): JsonNode? = runBlocking {
-        val url =
-            "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
-        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
-        client.newCall(req).execute().use { res ->
-            if (!res.isSuccessful) return@runBlocking null
-            val root = mapper.readTree(res.body!!.string())
-            root["data"].firstOrNull()
-        }
-    }
-
     fun downloadFile(
         collection: String,
         filterField: String,
@@ -116,19 +105,31 @@ object DirectusClient {
         arrayField: String,
         localeFieldName: String  = "locale",
         textFieldName: String    = "message"
-    ): Map<String, String>? {
-        val node = getFields(
-            collection   = collection,
-            filterField  = filterField,
-            filterValue  = filterValue,
-            fields       = listOf(arrayField)
-        ) ?: return null
-        return node[arrayField]
-            ?.mapNotNull { elem ->
-                val locale = elem[localeFieldName]?.asText()
-                val text   = elem[textFieldName]?.asText()
-                if (locale != null && text != null) locale to text else null
-            }
-            ?.toMap()
+    ): Map<String, String>? = runBlocking {
+        val url =
+            "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=$arrayField"
+        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
+        client.newCall(req).execute().use { res ->
+            if (!res.isSuccessful) return@runBlocking null
+            val root = mapper.readTree(res.body!!.string())
+            val node = root["data"].firstOrNull() ?: return@runBlocking null
+            node[arrayField]
+                ?.mapNotNull { elem ->
+                    val locale = elem[localeFieldName]?.asText()
+                    val text = elem[textFieldName]?.asText()
+                    if (locale != null && text != null) locale to text else null
+                }
+                ?.toMap()
+        }
+    }
+
+    fun listItems(collection: String, field: String): List<String> = runBlocking {
+        val url = "$host/items/$collection?fields=$field"
+        val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
+        client.newCall(req).execute().use { res ->
+            if (!res.isSuccessful) return@runBlocking emptyList()
+            val root = mapper.readTree(res.body!!.string())
+            root["data"].mapNotNull { it[field]?.asText() }
+        }
     }
 }
