@@ -51,10 +51,8 @@ object DirectusClient {
         client.newCall(req).execute().use { res ->
             if (!res.isSuccessful) return@runBlocking emptyList()
             val root = mapper.readTree(res.body!!.string())
-            root["data"]
-                .mapNotNull { entry ->
-                    entry[field]?.firstOrNull()
-                }
+            val node = root["data"].firstOrNull() ?: return@runBlocking emptyList()
+            node[field]?.map { it } ?: emptyList()
         }
     }
 
