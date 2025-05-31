@@ -42,9 +42,9 @@ object DirectusClient {
         }
     }
 
-    fun getItems(collection: String, filterField: String, filterValue: String, fields: List<String>): List<JsonNode> = runBlocking {
+    fun getFields(collection: String, filterField: String, filterValue: String, field: String): List<JsonNode> = runBlocking {
         val url =
-            "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${fields.joinToString(",")}"
+            "$host/items/$collection?filter[$filterField][_eq]=$filterValue&fields=${field}"
         val req = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
         client.newCall(req).execute().use { res ->
             if (!res.isSuccessful) return@runBlocking emptyList()

@@ -34,11 +34,11 @@ object Permissions {
             .orEmpty()
 
     private fun loadPermissions(uuid: UUID): List<String> {
-        val permsFromDb = DirectusClient.getItems(
+        val permsFromDb = DirectusClient.getFields(
             "player_permissions",
             "uuid",
             uuid.toString(),
-            listOf("permissions")
+            "permissions"
         ).firstOrNull()
             ?.get("permissions")
             ?.mapNotNull { it["permission"]?.asText() }
@@ -57,11 +57,11 @@ object Permissions {
         return permsFromDb.flatMap { perm ->
             if (perm.startsWith("group.")) {
                 val groupName = perm.removePrefix("group.")
-                DirectusClient.getItems(
+                DirectusClient.getFields(
                     "group_permissions",
                     "name",
                     groupName,
-                    listOf("permissions")
+                    "permissions"
                 ).firstOrNull()
                     ?.get("permissions")
                     ?.mapNotNull { it["permission"]?.asText() }
