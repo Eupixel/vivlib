@@ -39,10 +39,7 @@ object Permissions {
             "uuid",
             uuid.toString(),
             "permissions"
-        ).firstOrNull()
-            ?.get("permissions")
-            ?.mapNotNull { it["permission"]?.asText() }
-            .orEmpty()
+        ).mapNotNull { it["permission"]?.asText() }
             .toMutableList()
         if (permsFromDb.isEmpty()) {
             DirectusClient.createItem(
@@ -62,10 +59,7 @@ object Permissions {
                     "name",
                     groupName,
                     "permissions"
-                ).firstOrNull()
-                    ?.get("permissions")
-                    ?.mapNotNull { it["permission"]?.asText() }
-                    .orEmpty()
+                ).mapNotNull { it["permission"]?.asText() }
             } else {
                 listOf(perm)
             }
