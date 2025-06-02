@@ -1,9 +1,12 @@
 // Example
 
+import net.eupixel.core.DBTranslator
 import net.eupixel.core.DirectusClient
+import java.util.Locale
 
 fun main() {
     DirectusClient.initFromEnv()
-    val rawMOTD = DirectusClient.getData("global_values", "name", "motd", "data").toString()
-    println("'$rawMOTD'")
+    DBTranslator.loadFromDB()
+    val test = DBTranslator.translate("whereami", Locale.US)
+    println(test)
 }

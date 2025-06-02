@@ -4,18 +4,13 @@ import net.eupixel.model.Message
 import net.eupixel.model.Translation
 import java.util.Locale
 
-class DBTranslator(
-    private val keys: Array<String>,
-    private val defaultLocale: Locale = Locale.US,
-    private val fallbackMessage: String = "no translation"
-) {
+object DBTranslator {
+    private var keys: List<String> = emptyList()
+    private val defaultLocale = Locale.US
     private val messages = mutableListOf<Message>()
 
-    init {
-        loadFromDB()
-    }
-
     fun loadFromDB() {
+        keys = DirectusClient.listItems("messages", "key")
         messages.clear()
         keys.forEach { key ->
             DirectusClient.getLocalizedMap(
@@ -51,7 +46,7 @@ class DBTranslator(
         msg?.getTranslations()?.find { it.getLocale() == defaultLocale }?.let {
             return it.getMessage()
         }
-        return fallbackMessage
+        return "no translation"
     }
 
     fun get(key: String, locale: Locale): String {
