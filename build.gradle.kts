@@ -17,6 +17,7 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.20.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.json:json:20240303")
 }
 
 kotlin {

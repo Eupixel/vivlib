@@ -10,6 +10,7 @@ object Messenger {
     private val targets = mutableMapOf<String, ServerInfo>()
     private val listeners = mutableMapOf<String, MutableList<(String) -> Unit>>()
     private val globalListeners = mutableListOf<(String, String) -> Unit>()
+    private val requestHandlers = mutableMapOf<String, (String) -> String>()
     private var serverSocket: ServerSocket? = null
 
     fun registerTarget(name: String, host: String, port: Int) {
@@ -28,6 +29,10 @@ object Messenger {
         globalListeners.add(handler)
     }
 
+    fun addRequestHandler(channel: String, handler: (String) -> String) {
+        requestHandlers[channel] = handler
+    }
+
     fun send(targetName: String, channel: String, msg: String) {
         val info = targets[targetName] ?: return
         Socket(info.host, info.port).use { sock ->
@@ -36,6 +41,18 @@ object Messenger {
                 newLine()
                 flush()
             }
+        }
+    }
+
+    fun sendRequest(targetName: String, channel: String, msg: String): String? {
+        val info = targets[targetName] ?: return null
+        Socket(info.host, info.port).use { sock ->
+            val writer = sock.getOutputStream().bufferedWriter()
+            writer.write("$channel:$msg")
+            writer.newLine()
+            writer.flush()
+            val response = sock.getInputStream().bufferedReader().readLine()
+            return response
         }
     }
 
@@ -55,6 +72,14 @@ object Messenger {
                         sock.use {
                             val line = it.getInputStream().bufferedReader().readLine()
                             val (channel, message) = line.split(":", limit = 2)
+                            if (requestHandlers.containsKey(channel)) {
+                                val response = requestHandlers[channel]!!.invoke(message)
+                                it.getOutputStream().bufferedWriter().apply {
+                                    write(response)
+                                    newLine()
+                                    flush()
+                                }
+                            }
                             listeners[channel]?.forEach { handler -> handler(message) }
                             globalListeners.forEach { handler -> handler(channel, message) }
                         }
