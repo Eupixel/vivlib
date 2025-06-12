@@ -33,19 +33,13 @@ object WhitelistManager {
     }
 
     fun add(uuid: String, ip: String, ttl: Int, timestamp: Instant) {
-        println("Adding $uuid: IP:$ip TTL:$ttl")
-        whitelist[fromString(uuid)] = WhitelistEntry(ip, ttl, timestamp)
+        whitelist[fromString(uuid)] = WhitelistEntry(ip.substringAfter("/").substringBefore(":"), ttl, timestamp)
     }
 
     fun handle(event: AsyncPlayerConfigurationEvent) {
-        println("Checking whitelist for ${event.player.username}, I currently have ${whitelist.size} whitelists.")
-        println(event.player.uuid.toString())
-        println(event.player.playerConnection.remoteAddress)
-        var allow = false
         val entry = whitelist[event.player.uuid]
-        if(entry != null) {
-            allow = event.player.playerConnection.remoteAddress.toString() == entry.ip
-        }
+        val remoteIp = (event.player.playerConnection.remoteAddress as java.net.InetSocketAddress).address.hostAddress
+        val allow = entry != null && remoteIp == entry.ip
         if (!allow) {
             event.player.kick("You are not allowed here. Further joins will result in a ban.")
         }
