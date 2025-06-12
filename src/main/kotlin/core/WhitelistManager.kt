@@ -38,8 +38,9 @@ object WhitelistManager {
     }
 
     fun handle(event: AsyncPlayerConfigurationEvent) {
-        println("Checking whitelist for ${event.player.name}, I currently have ${whitelist.size} whitelists.")
+        println("Checking whitelist for ${event.player.username}, I currently have ${whitelist.size} whitelists.")
         println(event.player.uuid.toString())
+        println(event.player.playerConnection.remoteAddress)
         var allow = false
         val entry = whitelist[event.player.uuid]
         if(entry != null) {
