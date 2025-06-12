@@ -39,12 +39,12 @@ object DBTranslator {
     }
 
     fun translate(key: String, locale: Locale): String {
-        val msg = messages.find { it.getKey() == key }
-        msg?.getTranslations()?.find { it.getLocale() == locale }?.let {
-            return it.getMessage()
+        val msg = messages.find { it.key == key }
+        msg?.translations?.find { it.locale == locale }?.let {
+            return it.message
         }
-        msg?.getTranslations()?.find { it.getLocale() == defaultLocale }?.let {
-            return it.getMessage()
+        msg?.translations?.find { it.locale == defaultLocale }?.let {
+            return it.message
         }
         return "no translation"
     }
