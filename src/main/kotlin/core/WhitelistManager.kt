@@ -21,8 +21,11 @@ object WhitelistManager {
         scope.launch {
             while (isActive) {
                 val now = Instant.now()
-                whitelist.entries.removeIf {
-                    Duration.between(it.value.timestamp, now) > Duration.ofSeconds(it.value.ttl.toLong())
+                whitelist.entries.forEach {
+                    if(Duration.between(it.value.timestamp, now) > Duration.ofSeconds(it.value.ttl.toLong())) {
+                        println("Removing ${it.key} from whitelist!")
+                        whitelist.remove(it.key)
+                    }
                 }
                 delay(1000L)
             }
@@ -30,6 +33,7 @@ object WhitelistManager {
     }
 
     fun add(uuid: String, ip: String, ttl: Int, timestamp: Instant) {
+        println("Adding $uuid: IP:$ip TTL:$ttl")
         whitelist[fromString(uuid)] = WhitelistEntry(ip, ttl, timestamp)
     }
 
