@@ -34,6 +34,8 @@ object WhitelistManager {
     }
 
     fun handle(event: AsyncPlayerConfigurationEvent) {
+        println("Checking whitelist for ${event.player.name}, I currently have ${whitelist.size} whitelists.")
+        println(event.player.uuid.toString())
         var allow = false
         val entry = whitelist[event.player.uuid]
         if(entry != null) {
