@@ -6,12 +6,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.eupixel.model.WhitelistEntry
+import net.kyori.adventure.text.minimessage.MiniMessage.miniMessage
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
-import java.util.UUID.fromString
-import kotlin.collections.set
 
 object WhitelistManager {
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -33,16 +32,19 @@ object WhitelistManager {
     }
 
     fun add(uuid: String, ip: String, ttl: Int, timestamp: Instant) {
-        whitelist[fromString(uuid)] = WhitelistEntry(ip.substringAfter("/").substringBefore(":"), ttl, timestamp)
+        whitelist[UUID.fromString(uuid)] = WhitelistEntry(formatIP(ip), ttl, timestamp)
     }
 
     fun handle(event: AsyncPlayerConfigurationEvent) {
         val entry = whitelist[event.player.uuid]
-        val remoteIp = (event.player.playerConnection.remoteAddress as java.net.InetSocketAddress).address.hostAddress
-        val allow = entry != null && remoteIp == entry.ip
+        val allow = entry != null && formatIP(event.player.playerConnection.remoteAddress.toString()) == entry.ip
         if (!allow) {
-            event.player.kick("You are not allowed here. Further joins will result in a ban.")
+            event.player.kick(miniMessage().deserialize(DBTranslator.get("join_deny", event.player.locale)))
         }
         whitelist.remove(event.player.uuid)
+    }
+
+    fun formatIP(ip: String): String {
+        return ip.substringAfter("/").substringBefore(":")
     }
 }
