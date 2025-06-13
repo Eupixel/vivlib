@@ -35,4 +35,8 @@ object Vivlib {
             event.formattedMessage = miniMessage().deserialize(message)
         }
     }
+
+    fun reload() {
+        Config.init()
+    }
 }
