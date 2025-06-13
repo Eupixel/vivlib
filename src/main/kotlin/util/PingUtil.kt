@@ -1,4 +1,4 @@
-package util
+package net.eupixel.vivlib.util
 
 import org.json.JSONObject
 import java.io.DataInputStream

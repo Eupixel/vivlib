@@ -1,6 +1,5 @@
-package net.eupixel.util
+package net.eupixel.vivlib.util
 
-import net.eupixel.vivlib.util.Permissions
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType

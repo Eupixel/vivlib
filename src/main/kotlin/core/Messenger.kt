@@ -1,4 +1,4 @@
-package net.eupixel.core
+package net.eupixel.vivlib.core
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket

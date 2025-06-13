@@ -1,7 +1,7 @@
 // Example
 
 import kotlinx.coroutines.runBlocking
-import net.eupixel.core.WhitelistManager
+import net.eupixel.vivlib.core.WhitelistManager
 import java.time.Instant
 
 fun main() = runBlocking {

@@ -1,6 +1,6 @@
 package net.eupixel.vivlib.util
 
-import net.eupixel.core.DirectusClient
+import net.eupixel.vivlib.core.DirectusClient
 import java.util.UUID
 
 object Permissions {

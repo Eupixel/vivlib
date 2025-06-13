@@ -1,11 +1,11 @@
-package net.eupixel.core
+package net.eupixel.vivlib.core
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import net.eupixel.model.WhitelistEntry
+import net.eupixel.vivlib.model.WhitelistEntry
 import net.kyori.adventure.text.minimessage.MiniMessage.miniMessage
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import java.time.Duration

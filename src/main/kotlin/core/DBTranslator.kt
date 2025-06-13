@@ -1,7 +1,7 @@
-package net.eupixel.core
+package net.eupixel.vivlib.core
 
-import net.eupixel.model.Message
-import net.eupixel.model.Translation
+import net.eupixel.vivlib.model.Message
+import net.eupixel.vivlib.model.Translation
 import java.util.Locale
 
 object DBTranslator {

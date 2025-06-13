@@ -1,4 +1,4 @@
-package net.eupixel.model
+package net.eupixel.vivlib.model
 
 import java.time.Instant
 
