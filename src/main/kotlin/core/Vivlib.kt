@@ -1,11 +1,6 @@
-package core
+package net.eupixel.vivlib.core
 
 import net.eupixel.vivlib.command.WhereAmICommand
-import net.eupixel.vivlib.core.Config
-import net.eupixel.vivlib.core.DBTranslator
-import net.eupixel.vivlib.core.DirectusClient
-import net.eupixel.vivlib.core.Messenger
-import net.eupixel.vivlib.core.WhitelistManager
 import net.eupixel.vivlib.util.Permissions
 import net.eupixel.vivlib.util.PrefixLoader.loadPrefix
 import net.kyori.adventure.text.minimessage.MiniMessage.miniMessage
