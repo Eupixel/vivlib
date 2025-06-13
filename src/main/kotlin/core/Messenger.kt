@@ -64,6 +64,7 @@ object Messenger {
     }
 
     fun bind(ip: String, port: Int) {
+        println("Starting Messenger!")
         serverSocket = ServerSocket().apply {
             bind(InetSocketAddress(ip, port))
         }
