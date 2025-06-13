@@ -101,8 +101,8 @@ object Messenger {
             WhitelistManager.add(uuid, ttl, timestamp)
         }
         addListener("transfer") { msg ->
-            val uuid = msg.split("&")[0]
-            val target = msg.split("&")[1]
+            val uuid = msg.split("?")[0]
+            val target = msg.split("?")[1]
             MinecraftServer.getConnectionManager().onlinePlayers.forEach {
                 if(it.uuid.toString() == uuid) {
                     it.sendPacket(TransferPacket(target.split("&")[0], target.split("&")[1].toInt()))
