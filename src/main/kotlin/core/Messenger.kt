@@ -3,6 +3,7 @@ package net.eupixel.vivlib.core
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.time.Instant
 import kotlin.concurrent.thread
 
 object Messenger {
@@ -86,6 +87,16 @@ object Messenger {
                     }
                 }
             }
+        }
+    }
+
+    fun addWhiteListListener() {
+        addListener("add_whitelist") { msg ->
+            val uuid = msg.split("&")[0]
+            val ip = msg.split("&")[1]
+            val ttl = msg.split("&")[2].toInt()
+            val timestamp = Instant.parse(msg.split("&")[3])
+            WhitelistManager.add(uuid, ip, ttl, timestamp)
         }
     }
 }
