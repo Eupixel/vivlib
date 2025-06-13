@@ -7,6 +7,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.time.Instant
+import java.util.UUID.fromString
 import kotlin.concurrent.thread
 
 object Messenger {
@@ -128,5 +129,10 @@ object Messenger {
                 }
             }
         }
+        addRequestHandler("player_online", this::playerOnline)
+    }
+
+    fun playerOnline(uuid: String): String {
+        return (MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(fromString(uuid)) != null).toString()
     }
 }
