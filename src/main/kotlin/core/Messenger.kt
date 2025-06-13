@@ -50,14 +50,12 @@ object Messenger {
         }
     }
 
-    fun send(targetName: String, channel: String, msg: String): String? {
+    fun send(targetName: String, channel: String, msg: String) {
         Socket(targetName, 2903).use { sock ->
             val writer = sock.getOutputStream().bufferedWriter()
             writer.write("$channel:$msg")
             writer.newLine()
             writer.flush()
-            val response = sock.getInputStream().bufferedReader().readLine()
-            return response
         }
     }
 
