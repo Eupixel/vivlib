@@ -31,27 +31,18 @@ object WhitelistManager {
         }
     }
 
-    fun add(uuid: String, ip: String, ttl: Int, timestamp: Instant) {
-        println("Adding $uuid to $ip")
-        whitelist[UUID.fromString(uuid)] = WhitelistEntry(formatIP(ip), ttl, timestamp)
+    fun add(uuid: String, ttl: Int, timestamp: Instant) {
+        println("Adding $uuid to Whitelist for $ttl at $timestamp.")
+        whitelist[UUID.fromString(uuid)] = WhitelistEntry(ttl, timestamp)
     }
 
     fun handle(event: AsyncPlayerConfigurationEvent) {
         val entry = whitelist[event.player.uuid]
-        val remoteIp = formatIP(event.player.playerConnection.remoteAddress.toString())
-        println("Remote IP resolved as $remoteIp")
-        val allow = entry != null && remoteIp == entry.ip
-        println("Allow set to $allow")
+        val allow = entry != null
         if (!allow) {
-            println("Kicking player ${event.player.name}")
+            println("Kicking player ${event.player.name}!")
             event.player.kick(miniMessage().deserialize(DBTranslator.get("join_deny", event.player.locale)))
         }
         whitelist.remove(event.player.uuid)
-        println("Removed ${event.player.uuid} from whitelist")
-    }
-
-
-    fun formatIP(ip: String): String {
-        return ip.substringAfter("/").substringBefore(":")
     }
 }

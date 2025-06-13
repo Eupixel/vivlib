@@ -38,20 +38,20 @@ object Messenger {
         requestHandlers[channel] = handler
     }
 
-    fun send(targetName: String, channel: String, msg: String) {
-        val info = targets[targetName] ?: return
-        Socket(info.host, info.port).use { sock ->
-            sock.getOutputStream().bufferedWriter().apply {
-                write("$channel:$msg")
-                newLine()
-                flush()
-            }
-        }
-    }
-
     fun sendRequest(targetName: String, channel: String, msg: String): String? {
         val info = targets[targetName] ?: return null
         Socket(info.host, info.port).use { sock ->
+            val writer = sock.getOutputStream().bufferedWriter()
+            writer.write("$channel:$msg")
+            writer.newLine()
+            writer.flush()
+            val response = sock.getInputStream().bufferedReader().readLine()
+            return response
+        }
+    }
+
+    fun send(targetName: String, channel: String, msg: String): String? {
+        Socket(targetName, 2903).use { sock ->
             val writer = sock.getOutputStream().bufferedWriter()
             writer.write("$channel:$msg")
             writer.newLine()
@@ -97,10 +97,9 @@ object Messenger {
     fun addBaseListener() {
         addListener("add_whitelist") { msg ->
             val uuid = msg.split("&")[0]
-            val ip = msg.split("&")[1]
-            val ttl = msg.split("&")[2].toInt()
-            val timestamp = Instant.parse(msg.split("&")[3])
-            WhitelistManager.add(uuid, ip, ttl, timestamp)
+            val ttl = msg.split("&")[1].toInt()
+            val timestamp = Instant.parse(msg.split("&")[2])
+            WhitelistManager.add(uuid, ttl, timestamp)
         }
         addListener("transfer") { msg ->
             val uuid = msg.split("&")[0]
