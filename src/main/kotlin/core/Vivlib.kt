@@ -21,7 +21,9 @@ object Vivlib {
         DirectusClient.initFromEnv()
         Config.init()
         DBTranslator.loadFromDB()
-        Messenger.addWhiteListListener()
+        Messenger.bind("0.0.0.0", 2905)
+        Messenger.registerTarget("entrypoint", "entrypoint", 2905)
+        Messenger.addBaseListener()
         MinecraftServer.getCommandManager().register(WhereAmICommand())
         MinecraftServer.getGlobalEventHandler().addListener(AsyncPlayerConfigurationEvent::class.java) { event -> WhitelistManager.handle(event) }
         MinecraftServer.getGlobalEventHandler().addListener(PlayerSpawnEvent::class.java) { event -> loadPrefix(event.player) }

@@ -1,5 +1,8 @@
 package net.eupixel.vivlib.core
 
+import net.kyori.adventure.text.minimessage.MiniMessage
+import net.minestom.server.MinecraftServer
+import net.minestom.server.network.packet.server.common.TransferPacket
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -90,13 +93,40 @@ object Messenger {
         }
     }
 
-    fun addWhiteListListener() {
+    fun addBaseListener() {
         addListener("add_whitelist") { msg ->
             val uuid = msg.split("&")[0]
             val ip = msg.split("&")[1]
             val ttl = msg.split("&")[2].toInt()
             val timestamp = Instant.parse(msg.split("&")[3])
             WhitelistManager.add(uuid, ip, ttl, timestamp)
+        }
+        addListener("transfer") { msg ->
+            val uuid = msg.split("&")[0]
+            val target = msg.split("&")[1]
+            MinecraftServer.getConnectionManager().onlinePlayers.forEach {
+                if(it.uuid.toString() == uuid) {
+                    it.sendPacket(TransferPacket(target.split("&")[0], target.split("&")[1].toInt()))
+                }
+            }
+        }
+        addListener("action") { msg ->
+            val uuid = msg.split("&")[0]
+            val msg = msg.split("&")[1]
+            MinecraftServer.getConnectionManager().onlinePlayers.forEach {
+                if(it.uuid.toString() == uuid) {
+                    it.sendActionBar(MiniMessage.miniMessage().deserialize(msg))
+                }
+            }
+        }
+        addListener("message") { msg ->
+            val uuid = msg.split("&")[0]
+            val msg = msg.split("&")[1]
+            MinecraftServer.getConnectionManager().onlinePlayers.forEach {
+                if(it.uuid.toString() == uuid) {
+                    it.sendMessage(MiniMessage.miniMessage().deserialize(msg))
+                }
+            }
         }
     }
 }
